@@ -13,6 +13,7 @@
 
     /* Doodle Customization Variables (Change manually here or via UI sliders) */
     --doodle-opacity: 0.65;
+    --doodle-opacity-dark: 0.2;
     --doodle-contrast: 1;
     --doodle-brightness: 1;
 
@@ -322,7 +323,7 @@ body {
     height: 812px;
     flex-shrink: 0;
     background-color: var(--chat-bg);
-    border-radius: 52px;
+    border-radius: 39px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -486,8 +487,8 @@ body.dark-mode .chat-doodle-bg,
     background-image: url('Dark.jpg');
     filter: contrast(var(--doodle-contrast, 1)) brightness(1);
     mix-blend-mode: screen;
-    opacity: var(--doodle-opacity, 0.65);
-    background-size: 450px auto;
+    opacity: var(--doodle-opacity-dark, 0.1);
+    background-size: 280px auto;
 }
 
 .chat-viewport.hide-doodle .chat-doodle-bg {
@@ -506,11 +507,36 @@ body.dark-mode .chat-doodle-bg,
     flex: 1;
     padding: 16px;
     overflow-y: auto;
+    background: transparent !important;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+    /* Removed flexbox and smooth scrolling for virtual scroller compatibility */
+}
+
+.chat-container *::selection {
+    background: transparent;
+    color: inherit;
+}
+
+.virtual-spacer {
+    width: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.virtual-content {
+    position: absolute;
+    top: 16px;
+    /* Match container padding */
+    left: 16px;
+    right: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: transparent !important;
-    scroll-behavior: smooth;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
 }
 
 .chat-container::-webkit-scrollbar {
@@ -531,6 +557,9 @@ body.dark-mode .chat-doodle-bg,
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     word-wrap: break-word;
     animation: messageFadeIn 0.3s ease-out;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
 }
 
 @keyframes messageFadeIn {
@@ -561,7 +590,9 @@ body.dark-mode .chat-doodle-bg,
 
 .msg-content {
     white-space: pre-wrap;
-    user-select: text;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
     display: inline;
 }
 
@@ -667,7 +698,8 @@ body.dark-mode .chat-doodle-bg,
     border-radius: 10px;
     text-align: center;
     max-width: 85%;
-    margin: 12px 0;
+    width: fit-content;
+    margin: 12px auto;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     text-transform: uppercase;
     font-weight: 600;
@@ -723,6 +755,19 @@ body.dark-mode .chat-doodle-bg,
     display: block;
     transform: scale(1);
     opacity: 1;
+    animation: contextPop 0.15s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+}
+
+@keyframes contextPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.88);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .menu-item {
@@ -764,7 +809,7 @@ body.dark-mode .chat-doodle-bg,
     cursor: pointer;
     inset: 0;
     background-color: #333;
-    transition: .3s;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 20px;
 }
 
@@ -776,7 +821,7 @@ body.dark-mode .chat-doodle-bg,
     left: 3px;
     bottom: 3px;
     background-color: white;
-    transition: .3s;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
 }
 
@@ -928,4 +973,160 @@ input:checked+.slider:before {
     height: 28px;
     border-radius: 6px;
     object-fit: cover;
+}
+
+/* UI Structure & Extracted Inline Styles */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.01em;
+}
+
+.section-header-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#btnResetWallpaper svg {
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center;
+}
+
+
+#btnResetWallpaper:active svg,
+#btnResetWallpaper.spin svg {
+    transform: rotate(-360deg);
+}
+
+.toggle-sublabel {
+    font-size: 11px;
+    color: var(--sidebar-text-muted);
+}
+
+.switch-sm {
+    width: 34px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.switch-sm .slider:before {
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switch-sm input:checked+.slider:before {
+    transform: translateX(16px);
+}
+
+/* Preset Palette Colors */
+.wp-preset[data-color="default"] {
+    background: var(--chat-bg);
+}
+
+.wp-preset[data-color="#0c332c"] {
+    background: #0c332c;
+}
+
+.wp-preset[data-color="#121b22"] {
+    background: #121b22;
+}
+
+.wp-preset[data-color="#0b141a"] {
+    background: #0b141a;
+}
+
+.wp-preset[data-color="#2a3942"] {
+    background: #2a3942;
+}
+
+.wp-preset[data-color="#d6eed8"] {
+    background: #d6eed8;
+}
+
+.wp-preset[data-color="#d8ebf2"] {
+    background: #d8ebf2;
+}
+
+.wp-preset[data-color="#efeae2"] {
+    background: #efeae2;
+}
+
+.wp-preset[data-color="#f3e5e5"] {
+    background: #f3e5e5;
+}
+
+.wp-preset[data-color="#312239"] {
+    background: #312239;
+}
+
+#colorPickerPreview {
+    background: #efeae2;
+}
+
+.wp-rgb-caption {
+    font-size: 10px;
+    color: var(--sidebar-text-muted);
+    font-weight: 600;
+}
+
+.wp-upload-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wp-btn-upload {
+    justify-content: center;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#wpImgUpload,
+#pfpUpload {
+    display: none;
+}
+
+.wp-preview-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#wpImgName {
+    font-size: 11px;
+    color: var(--sidebar-text);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-icon-pad {
+    padding: 4px;
+}
+
+.action-hint {
+    font-size: 10px;
+    color: var(--sidebar-text-muted);
+    margin: 4px 0 0 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+.system-msg.upload-prompt {
+    background: #fffbe6;
+    border-radius: 8px;
 }

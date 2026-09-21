@@ -3,18 +3,18 @@ function updateDeviceScale() {
     const container = document.querySelector('.device-container');
     const device = document.getElementById('mainDevice');
     if (!container || !device) return;
-    
+
     const rect = container.getBoundingClientRect();
     const availableWidth = rect.width;
     const availableHeight = rect.height;
-    
+
     // Base dimensions of the phone
     const baseWidth = 375;
     const baseHeight = 812;
-    
+
     // Calculate scale factor (max scale 1.15 to prevent it from getting too massive on huge screens)
     const scale = Math.min(1.15, availableWidth / baseWidth, availableHeight / baseHeight);
-    
+
     device.style.transform = `scale(${scale})`;
 }
 
@@ -82,7 +82,7 @@ try {
 // Function to replace raw emojis with platform-authentic emoji images
 function parseAndFormatEmojis(text, isIOS) {
     const style = isIOS ? 'apple' : 'whatsapp';
-    
+
     // Check if the text consists exclusively of 1, 2, or 3 emojis (WhatsApp big emoji feature)
     const trimmed = text.trim();
     const matches = trimmed.match(emojiRegex);
@@ -122,27 +122,27 @@ document.addEventListener('selectionchange', () => {
     const range = selection.getRangeAt(0);
     const startMsg = range.startContainer.parentElement?.closest('.message');
     const endMsg = range.endContainer.parentElement?.closest('.message');
-    if (startMsg && endMsg && startMsg !== endMsg) selection.removeAllRanges(); 
+    if (startMsg && endMsg && startMsg !== endMsg) selection.removeAllRanges();
 });
 
 // OS Toggle (Android / iOS Mode)
 osToggle.addEventListener('change', (e) => {
     const isIOS = e.target.checked;
     osLabel.textContent = isIOS ? "iOS Mode" : "Android Mode";
-    
+
     requestAnimationFrame(() => {
         const overlay = document.createElement('div');
         overlay.className = 'liquid-glass-overlay';
         deviceEl.appendChild(overlay);
 
-        setTimeout(() => { 
+        setTimeout(() => {
             if (isIOS) document.body.classList.add('ios-mode');
             else document.body.classList.remove('ios-mode');
-            
+
             // Switch emojis to match current OS
             updateAllEmojisInChat(isIOS);
         }, 100);
-        
+
         setTimeout(() => overlay.remove(), 700);
     });
 });
@@ -227,6 +227,8 @@ presetButtons.forEach(btn => {
 
 // Reset Default Wallpaper
 btnResetWallpaper.addEventListener('click', () => {
+    btnResetWallpaper.classList.add('spin');
+    setTimeout(() => btnResetWallpaper.classList.remove('spin'), 450);
     currentWallpaperMode = 'default';
     presetButtons.forEach(b => b.classList.remove('active'));
     document.querySelector('.wp-preset[data-color="default"]')?.classList.add('active');
@@ -311,7 +313,7 @@ document.getElementById('btnScreenshot').addEventListener('click', async () => {
 
     try {
         const canvas = await html2canvas(deviceEl, {
-            scale: 2, 
+            scale: 3, // iPhone X 3x Super Retina native resolution (1125 x 2436 px)
             useCORS: true,
             allowTaint: true,
             backgroundColor: screenshotBg,
@@ -432,12 +434,12 @@ document.getElementById('btnScreenshot').addEventListener('click', async () => {
                 });
             }
         });
-        
+
         const link = document.createElement('a');
         link.download = `Chat_${recipientName || 'Export'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-    } catch (err) { 
+    } catch (err) {
         console.error('Screenshot error:', err);
     } finally {
         btn.innerHTML = origBtnText;
@@ -453,14 +455,14 @@ pfpUpload.addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
             profilePic.style.backgroundImage = `url(${ev.target.result})`;
-            profilePic.innerText = ""; 
+            profilePic.innerText = "";
         };
         reader.readAsDataURL(file);
     }
 });
 
 // File import
-document.getElementById('fileInput').addEventListener('change', function(e) {
+document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     fileNameDisplay.textContent = file.name;
@@ -521,40 +523,140 @@ function parseChat(text) {
         const parts = recipientName.split(' ');
         profilePic.innerText = (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
         profilePic.style.backgroundColor = `hsl(${recipientName.length * 40 % 360}, 45%, 45%)`;
-        profilePic.style.backgroundImage = ''; 
+        profilePic.style.backgroundImage = '';
     }
     renderChatAsync(rawMessages);
 }
 
-// Asynchronous Chunk-based Chat Rendering
+let virtualScroller = {
+    items: [],
+    rowHeights: [],
+    defaultHeight: 50,
+    spacer: null,
+    content: null,
+    startIndex: -1,
+    endIndex: -1,
+    buffer: 20,
+    totalHeight: 0,
+    initialized: false,
+    renderFrame: null,
+    searchQuery: '',
+    isExactSearch: false
+};
+
+// Virtual Scroller - Instant Chunk-based Rendering
 function renderChatAsync(messages) {
-    chatContainer.innerHTML = '';
+    virtualScroller.items = messages;
+    virtualScroller.rowHeights = new Array(messages.length).fill(virtualScroller.defaultHeight);
+    virtualScroller.totalHeight = messages.length * virtualScroller.defaultHeight;
+    virtualScroller.startIndex = -1;
+    virtualScroller.endIndex = -1;
+    virtualScroller.searchQuery = '';
+
+    chatContainer.innerHTML = `
+        <div class="virtual-spacer" style="height: ${virtualScroller.totalHeight}px;"></div>
+        <div class="virtual-content" id="virtualContent"></div>
+    `;
+
+    virtualScroller.spacer = chatContainer.querySelector('.virtual-spacer');
+    virtualScroller.content = chatContainer.querySelector('.virtual-content');
+
+    if (!virtualScroller.initialized) {
+        chatContainer.addEventListener('scroll', () => {
+            if (virtualScroller.renderFrame) cancelAnimationFrame(virtualScroller.renderFrame);
+            virtualScroller.renderFrame = requestAnimationFrame(() => renderVirtualChunk(false));
+        });
+        virtualScroller.initialized = true;
+    }
+
+    // Simulate instant loading for UX
     const overlay = document.getElementById('loadingOverlay');
     const pBar = document.getElementById('progressBar');
     overlay.style.display = 'flex';
-    let index = 0;
-    const chunkSize = 150; 
+    pBar.style.transition = 'width 0.3s ease-out';
+    pBar.style.width = '100%';
+
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        pBar.style.width = '0%';
+        pBar.style.transition = 'none';
+
+        chatContainer.scrollTop = virtualScroller.totalHeight;
+        renderVirtualChunk(true);
+        resetSearch();
+    }, 350);
+}
+
+function renderVirtualChunk(force = false) {
+    if (!virtualScroller.items.length) return;
+
+    const scrollTop = chatContainer.scrollTop;
+    const clientHeight = chatContainer.clientHeight || window.innerHeight;
+
+    let accumulated = 0;
+    let visibleStart = 0;
+    for (let i = 0; i < virtualScroller.rowHeights.length; i++) {
+        if (accumulated + virtualScroller.rowHeights[i] > scrollTop) {
+            visibleStart = i;
+            break;
+        }
+        accumulated += virtualScroller.rowHeights[i];
+    }
+
+    let visibleEnd = visibleStart;
+    let visibleHeight = 0;
+    for (let i = visibleStart; i < virtualScroller.rowHeights.length; i++) {
+        visibleHeight += virtualScroller.rowHeights[i];
+        visibleEnd = i;
+        if (visibleHeight > clientHeight) break;
+    }
+
+    const renderStart = Math.max(0, visibleStart - virtualScroller.buffer);
+    const renderEnd = Math.min(virtualScroller.items.length - 1, visibleEnd + virtualScroller.buffer);
+
+    if (!force && renderStart >= virtualScroller.startIndex && renderEnd <= virtualScroller.endIndex && virtualScroller.content.innerHTML !== '') {
+        return;
+    }
+
+    virtualScroller.startIndex = renderStart;
+    virtualScroller.endIndex = renderEnd;
+
+    let transformY = 0;
+    for (let i = 0; i < renderStart; i++) {
+        transformY += virtualScroller.rowHeights[i];
+    }
+
+    let htmlStr = '';
     const isIOS = document.body.classList.contains('ios-mode');
 
-    function renderChunk() {
-        const fragment = document.createDocumentFragment();
-        const end = Math.min(index + chunkSize, messages.length);
-        for (; index < end; index++) {
-            const msg = messages[index];
-            const div = document.createElement('div');
-            div.id = msg.id; 
-            if (msg.type === 'system') {
-                div.className = 'system-msg';
-                div.innerText = msg.text;
-            } else {
-                const isSent = msg.sender === myName;
-                div.className = `message ${isSent ? 'sent' : 'received'}`;
-                const escapedText = msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                const formattedContent = parseAndFormatEmojis(escapedText, isIOS);
-                const spacerClass = msg.isEdited ? 'msg-spacer edited' : 'msg-spacer';
-                const editedTag = msg.isEdited ? `<span class="msg-edited-flag">Edited</span>` : '';
-                div.innerHTML = `
-                    <div class="msg-content" data-raw="${escapedText}">${formattedContent}<span class="${spacerClass}"></span></div>
+    let hlRegex = null;
+    if (virtualScroller.searchQuery) {
+        const escapedQuery = virtualScroller.searchQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        const hlRegexPattern = virtualScroller.isExactSearch ? `(\\b${escapedQuery}\\b)` : `(${escapedQuery})`;
+        hlRegex = new RegExp(hlRegexPattern, 'gi');
+    }
+
+    for (let i = renderStart; i <= renderEnd; i++) {
+        const msg = virtualScroller.items[i];
+        let displayHtml = msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        if (hlRegex) {
+            const markedText = displayHtml.replace(hlRegex, `~~~HL~~~$1~~~/HL~~~`);
+            displayHtml = parseAndFormatEmojis(markedText, isIOS).replace(/~~~HL~~~(.*?)~~~\/HL~~~/g, `<span class="word-highlight">$1</span>`);
+        } else {
+            displayHtml = parseAndFormatEmojis(displayHtml, isIOS);
+        }
+
+        if (msg.type === 'system') {
+            htmlStr += `<div id="${msg.id}" data-index="${i}" class="system-msg virtual-item">${displayHtml}</div>`;
+        } else {
+            const isSent = msg.sender === myName;
+            const spacerClass = msg.isEdited ? 'msg-spacer edited' : 'msg-spacer';
+            const editedTag = msg.isEdited ? `<span class="msg-edited-flag">Edited</span>` : '';
+
+            htmlStr += `
+                <div id="${msg.id}" data-index="${i}" class="message ${isSent ? 'sent' : 'received'} virtual-item">
+                    <div class="msg-content" data-raw="${msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}">${displayHtml}<span class="${spacerClass}"></span></div>
                     <div class="msg-meta">
                         ${editedTag}
                         <span class="msg-time">${msg.timeStr}</span>
@@ -562,44 +664,52 @@ function renderChatAsync(messages) {
                             <svg viewBox="0 0 16 15" width="16" height="15"><path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.346.125.467-.025l6.253-8.113a.366.366 0 0 0-.03-.514zm-4.322-.442l-.477-.373a.365.365 0 0 0-.51.063L4.346 9.426l-2.22-2.072a.32.32 0 0 0-.47-.019l-.42.42c-.13.13-.13.342-.001.472l2.903 2.912c.144.144.37.135.503-.018l6.02-7.666a.366.366 0 0 0-.041-.51z"></path></svg>
                         </div>
                     </div>
-                `;
-            }
-            fragment.appendChild(div);
+                </div>`;
         }
-        chatContainer.appendChild(fragment);
-        pBar.style.width = ((index / messages.length) * 100) + '%';
-        if (index < messages.length) { requestAnimationFrame(renderChunk); }
-        else { overlay.style.display = 'none'; chatContainer.scrollTop = chatContainer.scrollHeight; resetSearch(); }
     }
-    requestAnimationFrame(renderChunk);
+
+    virtualScroller.content.innerHTML = htmlStr;
+    virtualScroller.content.style.transform = `translateY(${transformY}px)`;
+
+    // Anchor correction
+    setTimeout(() => {
+        let heightChanged = false;
+        let diffBeforeScroll = 0;
+
+        const nodes = virtualScroller.content.querySelectorAll('.virtual-item');
+        nodes.forEach(node => {
+            const idx = parseInt(node.getAttribute('data-index'));
+            const trueHeight = node.offsetHeight + (idx === virtualScroller.items.length - 1 ? 0 : 8);
+            const oldHeight = virtualScroller.rowHeights[idx];
+
+            if (Math.abs(trueHeight - oldHeight) > 1) {
+                virtualScroller.rowHeights[idx] = trueHeight;
+                virtualScroller.totalHeight += (trueHeight - oldHeight);
+                heightChanged = true;
+
+                if (idx < visibleStart) {
+                    diffBeforeScroll += (trueHeight - oldHeight);
+                }
+            }
+        });
+
+        if (heightChanged) {
+            virtualScroller.spacer.style.height = `${virtualScroller.totalHeight}px`;
+            if (diffBeforeScroll !== 0) {
+                chatContainer.scrollTop += diffBeforeScroll;
+            }
+        }
+    }, 0);
 }
 
 // Search UI & Navigation
 function resetSearch() {
     searchResults = [];
     currentMatchIndex = -1;
+    virtualScroller.searchQuery = '';
+    virtualScroller.isExactSearch = false;
     if (searchStats) searchStats.innerText = "0 / 0";
-    const isIOS = document.body.classList.contains('ios-mode');
-    document.querySelectorAll('.word-highlight').forEach(el => {
-        const parent = el.closest('.msg-content');
-        if (parent) {
-            const raw = parent.getAttribute('data-raw');
-            const spacerClass = parent.querySelector('.msg-spacer')?.className || 'msg-spacer';
-            parent.innerHTML = parseAndFormatEmojis(raw, isIOS) + `<span class="${spacerClass}"></span>`;
-        }
-    });
-}
-
-function resetHighlightsOnly() {
-    const isIOS = document.body.classList.contains('ios-mode');
-    document.querySelectorAll('.word-highlight').forEach(el => {
-        const parent = el.closest('.msg-content');
-        if (parent) {
-            const raw = parent.getAttribute('data-raw');
-            const spacerClass = parent.querySelector('.msg-spacer')?.className || 'msg-spacer';
-            parent.innerHTML = parseAndFormatEmojis(raw, isIOS) + `<span class="${spacerClass}"></span>`;
-        }
-    });
+    renderVirtualChunk(true);
 }
 
 document.getElementById('searchClear').addEventListener('click', () => {
@@ -609,88 +719,167 @@ document.getElementById('searchClear').addEventListener('click', () => {
 
 searchInput.addEventListener('input', (e) => {
     let query = e.target.value.trim();
-    resetSearch();
-    if (!query) return;
-    isExactSearch = query.startsWith('"') && query.endsWith('"');
-    currentSearchQuery = isExactSearch ? query.slice(1, -1) : query;
-    if (!currentSearchQuery) return;
-    const escapedQuery = currentSearchQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-    const regexPattern = isExactSearch ? `\\b${escapedQuery}\\b` : escapedQuery;
+    if (!query) { resetSearch(); return; }
+
+    const isExact = query.startsWith('"') && query.endsWith('"');
+    const actualQuery = isExact ? query.slice(1, -1) : query;
+    if (!actualQuery) { resetSearch(); return; }
+
+    virtualScroller.searchQuery = actualQuery;
+    virtualScroller.isExactSearch = isExact;
+
+    const escapedQuery = actualQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const regexPattern = isExact ? `\\b${escapedQuery}\\b` : escapedQuery;
     const searchRegex = new RegExp(regexPattern, 'i');
-    searchResults = rawMessages.filter(m => m.type === 'message' && searchRegex.test(m.text));
+
+    // Search the raw array for lightning fast matching
+    searchResults = [];
+    for (let i = 0; i < virtualScroller.items.length; i++) {
+        if (virtualScroller.items[i].type === 'message' && searchRegex.test(virtualScroller.items[i].text)) {
+            searchResults.push(i);
+        }
+    }
+
     if (searchResults.length > 0) {
-        currentMatchIndex = searchResults.length - 1; 
+        currentMatchIndex = searchResults.length - 1;
         updateSearchUI();
         jumpToMatch();
+    } else {
+        if (searchStats) searchStats.innerText = "0 / 0";
+        renderVirtualChunk(true);
     }
 });
 
 document.getElementById('searchUp').addEventListener('click', () => {
     if (searchResults.length === 0) return;
     currentMatchIndex = (currentMatchIndex - 1 + searchResults.length) % searchResults.length;
-    updateSearchUI(); 
+    updateSearchUI();
     jumpToMatch();
 });
 
 document.getElementById('searchDown').addEventListener('click', () => {
     if (searchResults.length === 0) return;
     currentMatchIndex = (currentMatchIndex + 1) % searchResults.length;
-    updateSearchUI(); 
+    updateSearchUI();
     jumpToMatch();
 });
 
-function updateSearchUI() { 
-    if (searchStats) searchStats.innerText = `${currentMatchIndex + 1} / ${searchResults.length}`; 
+function updateSearchUI() {
+    if (searchStats) searchStats.innerText = `${currentMatchIndex + 1} / ${searchResults.length}`;
 }
 
 function jumpToMatch() {
-    resetHighlightsOnly();
-    const isIOS = document.body.classList.contains('ios-mode');
-    const msgData = searchResults[currentMatchIndex];
-    const domEl = document.getElementById(msgData.id);
-    if (domEl) {
-        domEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const contentDiv = domEl.querySelector('.msg-content');
-        const rawText = contentDiv.getAttribute('data-raw');
-        const spacerClass = domEl.querySelector('.msg-spacer')?.className || 'msg-spacer';
-        const escapedQuery = currentSearchQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-        const hlRegexPattern = isExactSearch ? `(\\b${escapedQuery}\\b)` : `(${escapedQuery})`;
-        const hlRegex = new RegExp(hlRegexPattern, 'gi');
-        
-        // Wrap query matches cleanly around emoji-formatted text
-        const markedText = rawText.replace(hlRegex, `~~~HL~~~$1~~~/HL~~~`);
-        const formatted = parseAndFormatEmojis(markedText, isIOS).replace(/~~~HL~~~(.*?)~~~\/HL~~~/g, `<span class="word-highlight">$1</span>`);
-        contentDiv.innerHTML = formatted + `<span class="${spacerClass}"></span>`;
+    const targetIndex = searchResults[currentMatchIndex];
+    if (targetIndex === undefined) return;
+
+    // Calculate scroll offset to put this message in view
+    let targetY = 0;
+    for (let i = 0; i < targetIndex; i++) {
+        targetY += virtualScroller.rowHeights[i];
     }
+
+    // Center it in the viewport roughly
+    const clientHeight = chatContainer.clientHeight || window.innerHeight;
+    chatContainer.scrollTop = Math.max(0, targetY - (clientHeight / 2));
+
+    // Force re-render instantly to show highlights
+    renderVirtualChunk(true);
 }
 
 // Context Menu (Right Click to Copy Bubble Text)
+const hideContextMenu = () => {
+    if (contextMenu.classList.contains('show')) {
+        contextMenu.classList.remove('show');
+    }
+};
+
 document.addEventListener('contextmenu', (e) => {
     const msgContent = e.target.closest('.message')?.querySelector('.msg-content');
     if (msgContent) {
         e.preventDefault();
+        window.getSelection()?.removeAllRanges();
         selectedTextToCopy = msgContent.getAttribute('data-raw') || msgContent.innerText.trim();
+
+        let x = e.clientX;
+        let y = e.clientY;
+        const menuWidth = 160;
+        const menuHeight = 55;
+
+        if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 8;
+        if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 8;
+
+        contextMenu.style.left = `${Math.max(8, x)}px`;
+        contextMenu.style.top = `${Math.max(8, y)}px`;
         contextMenu.classList.add('show');
-        let x = e.pageX, y = e.pageY;
-        if (x + 150 > window.innerWidth) x -= 150;
-        if (y + 100 > window.innerHeight) y -= 100;
-        contextMenu.style.left = `${x}px`;
-        contextMenu.style.top = `${y}px`;
+    } else {
+        hideContextMenu();
     }
 });
 
-document.addEventListener('click', () => contextMenu.classList.remove('show'));
+// Prevent chat text selection via cursor
+chatContainer.addEventListener('selectstart', (e) => {
+    e.preventDefault();
+});
 
-document.getElementById('menuCopy').addEventListener('click', () => {
+// Dismiss context menu on click outside, scroll, wheel, resize, or escape key
+document.addEventListener('click', (e) => {
+    if (!contextMenu.contains(e.target)) {
+        hideContextMenu();
+    }
+});
+
+chatContainer.addEventListener('scroll', hideContextMenu, { passive: true });
+window.addEventListener('scroll', hideContextMenu, { passive: true });
+window.addEventListener('wheel', (e) => {
+    if (!contextMenu.contains(e.target)) {
+        hideContextMenu();
+    }
+}, { passive: true });
+window.addEventListener('touchmove', (e) => {
+    if (!contextMenu.contains(e.target)) {
+        hideContextMenu();
+    }
+}, { passive: true });
+window.addEventListener('resize', hideContextMenu, { passive: true });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideContextMenu();
+});
+
+function showToast() {
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function fallbackCopy(text) {
     const textArea = document.createElement("textarea");
-    textArea.value = selectedTextToCopy;
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '-9999px';
+    textArea.style.opacity = '0';
     document.body.appendChild(textArea);
+    textArea.focus();
     textArea.select();
     try {
         document.execCommand('copy');
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
-    } catch (err) { console.error(err); }
+        showToast();
+    } catch (err) {
+        console.error(err);
+    }
     document.body.removeChild(textArea);
-    contextMenu.classList.remove('show');
+}
+
+document.getElementById('menuCopy').addEventListener('click', () => {
+    const textToCopy = selectedTextToCopy;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast();
+        }).catch(() => {
+            fallbackCopy(textToCopy);
+        });
+    } else {
+        fallbackCopy(textToCopy);
+    }
+    hideContextMenu();
 });
+
