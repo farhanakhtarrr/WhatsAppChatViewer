@@ -26,16 +26,37 @@
     --menu-text: #000000;
     --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
+    /* Message Bubble Gap / Spacing (Tweak manually here!) */
+    --msg-grouped-gap: 2.5px;
+    /* Gap between consecutive bubbles from the same sender */
+    --msg-group-gap: 8px;
+    /* Gap after the last bubble in a group (switching senders) */
+
     /* Sidebar Modernization */
-    --sidebar-bg: rgba(18, 18, 18, 0.85);
-    --sidebar-item-bg: rgba(30, 30, 30, 0.6);
-    --sidebar-border: rgba(255, 255, 255, 0.1);
-    --sidebar-text: #f0f0f0;
-    --sidebar-text-muted: #888888;
-    --accent-emerald: #10b981;
+    /* Control Cards (Sidebar Windows) */
+    --card-bg: #e4e4e6;
+    --card-border: rgba(0, 0, 0, 0.08);
+    --card-title-color: #111111;
+
+    /* Buttons (Unified variable for ALL buttons, reset button, and toggle tracks) */
+    --btn-bg: #121212;
+    --btn-text: #ffffff;
+    --btn-border: none;
+
+    /* Toggle Button Knobs (Unified variable for ALL toggle knobs) */
+    --knob-bg: #1dab63;
+    --knob-off-bg: #88888e;
 }
 
 body.dark-mode {
+    /* Control Cards Dark Mode */
+    --card-bg: #1c2227;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-title-color: #f0f2f5;
+
+    /* Buttons Dark Mode (inherits --btn-bg and --btn-text from :root) */
+    --btn-border: 1px solid rgba(255, 255, 255, 0.1);
+
     /* Android Dark Variables */
     --primary-color: #00a884;
     --header-bg: #1f2c34;
@@ -90,13 +111,18 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #0a0a0a;
+    height: 100vh;
+    background-color: #cbd8b8;
+    /* Soft mint/sage green from the mockup */
     font-family: var(--font-family);
     color: var(--msg-text);
     transition: background-color 0.3s ease;
     user-select: none;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+}
+
+body.dark-mode {
+    background-color: #121c21;
 }
 
 /* Responsive Layout - Full Page Centered */
@@ -104,205 +130,839 @@ body {
     display: flex;
     width: 100%;
     max-width: 1200px;
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
     margin: 0 auto;
-    padding: 20px;
+    padding: 16px 32px;
     box-sizing: border-box;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 48px;
+    overflow: hidden;
 }
 
 /* Side Panel Layout */
 #controls {
-    width: 340px;
+    width: 385px;
+    max-width: 385px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     z-index: 100;
 }
 
 .control-card {
-    background: var(--sidebar-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--sidebar-border);
+    background: var(--card-bg, #e4e4e6);
+    border: 1px solid var(--card-border, rgba(0, 0, 0, 0.08));
     border-radius: 24px;
-    padding: 20px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    box-sizing: border-box;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.control-card:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+body.dark-mode .control-card {
+    background: var(--card-bg, #1c2227);
+    border-color: var(--card-border, rgba(255, 255, 255, 0.08));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-@media (max-width: 850px) {
+.screenshot-card {
+    padding: 14px 20px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--card-title-color, #111111);
+    letter-spacing: -0.015em;
+}
+
+body.dark-mode .card-title {
+    color: var(--card-title-color, #f0f2f5);
+}
+
+/* Utility Hidden for Screen Readers / Compatibility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Generic Pill Buttons */
+.pill-btn {
+    border: var(--btn-border, none);
+    border-radius: 9999px;
+    background: var(--btn-bg, #000000);
+    color: var(--btn-text, #ffffff);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    height: 36px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    outline: none;
+    transition: background-color 0.2s ease;
+    user-select: none;
+    box-sizing: border-box;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+
+body.dark-mode .pill-btn {
+    background: var(--btn-bg, #000000);
+    color: var(--btn-text, #ffffff);
+    border: var(--btn-border, 1px solid rgba(255, 255, 255, 0.1));
+}
+
+/* Card 1: Preference Row */
+.preference-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.load-file-btn {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    padding: 0 16px;
+    font-size: 13.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Modern Toggles with Smooth Glide & Morphing Capsule Knobs */
+.toggle-pill {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.toggle-pill input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-track {
+    position: relative;
+    width: 90px;
+    height: 42px;
+    background: var(--btn-bg, #000000);
+    border: var(--btn-border, none);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    transition: background 0.35s ease;
+    overflow: hidden;
+}
+
+.toggle-knob {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 52px;
+    height: 34px;
+    background-color: var(--knob-bg, #1dab63);
+    border-radius: 9999px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    overflow: hidden;
+    transform-origin: center center;
+    will-change: left, width, background-color;
+}
+
+.toggle-pill input:not(:checked)+.toggle-track .toggle-knob {
+    animation: morphKnobUncheck 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* On initial page load before interaction, avoid unwanted uncheck animation */
+.toggle-pill:not(.user-interacted) input:not(:checked)+.toggle-track .toggle-knob {
+    animation: none;
+    left: 4px;
+    width: 52px;
+    background-color: var(--knob-bg, #1dab63);
+    color: #ffffff;
+}
+
+.knob-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.24s cubic-bezier(0.4, 0, 0.2, 1), transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.knob-icon.icon-android,
+.knob-icon.icon-sun {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+}
+
+.knob-icon.icon-apple,
+.knob-icon.icon-moon {
+    opacity: 0;
+    transform: scale(0.45) rotate(-25deg);
+}
+
+/* Checked Toggle State: Morph to fill towards right, then snap into real knob shape */
+.toggle-pill input:checked+.toggle-track .toggle-knob {
+    animation: morphKnobCheck 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.toggle-pill input:checked+.toggle-track .knob-icon.icon-android,
+.toggle-pill input:checked+.toggle-track .knob-icon.icon-sun {
+    opacity: 0;
+    transform: scale(0.45) rotate(25deg);
+}
+
+.toggle-pill input:checked+.toggle-track .knob-icon.icon-apple,
+.toggle-pill input:checked+.toggle-track .knob-icon.icon-moon {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+}
+
+/* Smaller Doodle Toggle in Wallpaper Card - Capsule Pill Knob */
+.toggle-pill-sm .toggle-track {
+    width: 62px;
+    height: 32px;
+    padding: 0;
+}
+
+.toggle-pill-sm .toggle-knob {
+    width: 36px;
+    height: 26px;
+    top: 3px;
+    left: 23px;
+    border-radius: 9999px;
+    background-color: var(--knob-bg, #1dab63);
+}
+
+.toggle-pill-sm:not(.user-interacted) input:checked+.toggle-track .toggle-knob {
+    animation: none;
+    left: 23px;
+    width: 36px;
+    background-color: var(--knob-bg, #1dab63);
+}
+
+.toggle-pill-sm input:not(:checked)+.toggle-track .toggle-knob {
+    animation: morphKnobSmUncheck 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.toggle-pill-sm input:checked+.toggle-track .toggle-knob {
+    animation: morphKnobSmCheck 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* Fluid morph keyframes: Expanding forward into the track, then snapping back into shape */
+@keyframes morphKnobCheck {
+    0% {
+        left: 4px;
+        width: 52px;
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+
+    45% {
+        left: 4px;
+        width: 82px;
+        /* Expands to fill the whole designated right direction */
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+
+    100% {
+        left: 34px;
+        width: 52px;
+        /* Pulls tail in to resume proportional knob shape */
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+}
+
+@keyframes morphKnobUncheck {
+    0% {
+        left: 34px;
+        width: 52px;
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+
+    45% {
+        left: 4px;
+        width: 82px;
+        /* Stretches and fills all the way back to the left */
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+
+    100% {
+        left: 4px;
+        width: 52px;
+        /* Snaps into the left resting capsule shape */
+        background-color: var(--knob-bg, #1dab63);
+        color: #ffffff;
+    }
+}
+
+/* Morph keyframes for small Doodle Toggle */
+@keyframes morphKnobSmCheck {
+    0% {
+        left: 3px;
+        width: 36px;
+        background-color: var(--knob-off-bg, #88888e);
+    }
+
+    45% {
+        left: 3px;
+        width: 56px;
+        /* Expands fully right */
+        background-color: var(--knob-bg, #1dab63);
+    }
+
+    100% {
+        left: 23px;
+        width: 36px;
+        /* Settles cleanly into right capsule */
+        background-color: var(--knob-bg, #1dab63);
+    }
+}
+
+@keyframes morphKnobSmUncheck {
+    0% {
+        left: 23px;
+        width: 36px;
+        background-color: var(--knob-bg, #1dab63);
+    }
+
+    45% {
+        left: 3px;
+        width: 56px;
+        /* Expands back to left */
+        background-color: var(--knob-off-bg, #88888e);
+    }
+
+    100% {
+        left: 3px;
+        width: 36px;
+        /* Settles into left capsule */
+        background-color: var(--knob-off-bg, #88888e);
+    }
+}
+
+/* Card 2: Chat Wallpaper */
+.wallpaper-swatches-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.wp-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: none !important;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+    outline: none !important;
+    box-sizing: border-box;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wp-swatch:focus,
+.wp-swatch:focus-visible {
+    outline: none !important;
+    border: none !important;
+}
+
+.wp-swatch:hover {
+    transform: scale(1.06);
+}
+
+.wp-swatch:active {
+    transform: scale(0.97);
+}
+
+/* Selected state: ABSOLUTELY NO black border inside or outside! Clean soft elevation and crisp checkmark */
+.wp-swatch.active {
+    transform: scale(1.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    border: none !important;
+    outline: none !important;
+}
+
+body.dark-mode .wp-swatch.active {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.15);
+    border: none !important;
+    outline: none !important;
+}
+
+.wp-swatch::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>') center center no-repeat;
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+    pointer-events: none;
+    z-index: 5;
+}
+
+.wp-swatch.active::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Custom Color Box: Figma-style Dotted Rainbow Matrix */
+.wp-swatch-custom {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 0;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+body.dark-mode .wp-swatch-custom {
+    background: #232a30;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.figma-color-dots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 6px;
+    width: 60%;
+    height: 60%;
+    pointer-events: none;
+    align-items: center;
+    justify-items: center;
+}
+
+.figma-color-dots .cdot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: block;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Action Row: Custom Wallpaper & Doodle on Left, Reset Centered under Swatch 6 */
+.wallpaper-action-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    align-items: center;
+}
+
+.wallpaper-left-group {
+    grid-column: 1 / 6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.custom-wp-btn {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 12.5px;
+    flex: 0 0 auto;
+}
+
+.doodle-toggle-pill {
+    flex: 0 0 auto;
+}
+
+.wallpaper-reset-wrapper {
+    grid-column: 6 / 7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--btn-bg, #000000);
+    border: var(--btn-border, none);
+    color: var(--btn-text, #ffffff);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, transform 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.circle-btn:hover {
+    transform: scale(1.05);
+}
+
+.circle-btn:active {
+    transform: scale(0.96);
+}
+
+body.dark-mode .circle-btn {
+    background: var(--btn-bg, #000000);
+    border: var(--btn-border, 1px solid rgba(255, 255, 255, 0.1));
+    color: var(--btn-text, #ffffff);
+}
+
+#btnResetWallpaper svg {
+    display: block;
+    margin: auto;
+    pointer-events: none;
+    transform-origin: center center;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#btnResetWallpaper.spin svg {
+    transform: rotate(-360deg);
+}
+
+/* Card 3: Search */
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-pill-input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    border-radius: 9999px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 12px;
+    gap: 6px;
+    box-sizing: border-box;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-pill-input:focus-within {
+    border-color: #000000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+body.dark-mode .search-pill-input {
+    background: #252d34;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+body.dark-mode .search-pill-input:focus-within {
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.search-pill-input input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 12.5px;
+    color: #111111;
+    font-family: inherit;
+    padding: 0;
+}
+
+body.dark-mode .search-pill-input input {
+    color: #ffffff;
+}
+
+.search-pill-input input::placeholder {
+    color: #777777;
+}
+
+.search-clear-btn {
+    background: transparent;
+    border: none;
+    color: #666666;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.search-clear-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #000000;
+}
+
+body.dark-mode .search-clear-btn {
+    color: #a0a0a0;
+}
+
+body.dark-mode .search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.search-stats-display {
+    font-size: 12px;
+    font-weight: 500;
+    color: #555555;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    padding: 0 2px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+body.dark-mode .search-stats-display {
+    color: #a0a0a0;
+}
+
+.search-arrows-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.search-arrow-btn {
+    background: transparent;
+    border: none;
+    color: #222222;
+    cursor: pointer;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: background-color 0.15s ease;
+}
+
+.search-arrow-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+body.dark-mode .search-arrow-btn {
+    color: #ffffff;
+}
+
+body.dark-mode .search-arrow-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Search Arrow Scale Pop Animation on Click (scales up from center with no added shapes or colors) */
+.search-arrow-btn.scale-pop {
+    animation: searchScalePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes searchScalePop {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(1.3);
+    }
+    75% {
+        transform: scale(0.92);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Card 4: Screenshot & Low Res Toggle */
+.screenshot-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.screenshot-action-btn {
+    flex: 1;
+    height: 40px;
+    font-size: 13.5px;
+}
+
+.low-res-toggle-btn {
+    position: relative;
+    height: 40px;
+    border-radius: 9999px;
+    background: var(--btn-bg, #000000);
+    border: var(--btn-border, none);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+    flex: 1;
+    transition: transform 0.15s ease, box-shadow 0.25s ease, background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    box-sizing: border-box;
+    padding: 0;
+    transform-origin: center center;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform;
+    line-height: 1;
+}
+
+/* The Knob: Starts as an elongated capsule pill on the left, then morphs to fill the WHOLE box */
+.low-res-knob {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 48px;
+    height: 32px;
+    border-radius: 9999px;
+    background-color: var(--knob-bg, #1dab63);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+    z-index: 1;
+    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+}
+
+.low-res-label {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1;
+    color: #ffffff;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(20px);
+    /* in inactive state, offset to right of capsule knob */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+}
+
+/* Active State: The green fill covers the WHOLE box, and text centers in the row! */
+.low-res-toggle-btn.active {
+    background-color: var(--knob-bg, #1dab63);
+}
+
+.low-res-toggle-btn.active .low-res-knob {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    background-color: var(--knob-bg, #1dab63);
+    box-shadow: none;
+}
+
+.low-res-toggle-btn.active .low-res-label {
+    transform: translateX(0);
+    /* smoothly centers in the row! */
+}
+
+/* Mobile & Small Screens Layout */
+@media (max-width: 899px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
     #app-wrapper {
+        height: auto;
+        min-height: 100vh;
+        max-height: none;
         flex-direction: column;
-        gap: 20px;
-        padding: 20px 10px;
+        gap: 24px;
+        padding: 20px 14px;
+        overflow: visible;
     }
 
     #controls {
         width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .control-card {
-        width: 100%;
-        max-width: 320px;
+        max-width: 375px;
     }
 
     .device-container {
         width: 100%;
-        height: 75vh;
+        height: 750px;
+        max-height: 80vh;
     }
-}
-
-.control-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.label-caps {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--sidebar-text-muted);
-    font-weight: 700;
-}
-
-/* Custom File Input Styling */
-.file-upload-wrapper {
-    position: relative;
-    cursor: pointer;
-    background: var(--sidebar-item-bg);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s;
-}
-
-.file-upload-wrapper:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.file-upload-wrapper input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-}
-
-.file-name-display {
-    font-size: 13px;
-    color: var(--sidebar-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Unified Search Bar */
-.search-container {
-    display: flex;
-    flex-direction: column;
-    background: var(--sidebar-item-bg);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 14px;
-    overflow: hidden;
-}
-
-.search-main {
-    display: flex;
-    align-items: center;
-    padding: 4px 14px;
-    border-bottom: 1px solid var(--sidebar-border);
-}
-
-.search-main input {
-    background: transparent;
-    border: none;
-    color: white;
-    padding: 12px 0;
-    font-size: 13px;
-    outline: none;
-    flex: 1;
-}
-
-.search-actions {
-    display: flex;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 6px 14px;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.search-nav-btns {
-    display: flex;
-    gap: 4px;
-}
-
-.search-btn {
-    background: transparent;
-    border: none;
-    color: var(--sidebar-text-muted);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.search-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-#searchStats {
-    font-size: 11px;
-    color: var(--sidebar-text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-}
-
-/* Modern Screenshot Button */
-#btnScreenshot {
-    background: var(--accent-emerald);
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-#btnScreenshot:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
-}
-
-#btnScreenshot:active {
-    transform: translateY(0);
 }
 
 /* Device Container & Styling */
@@ -312,8 +972,8 @@ body {
     justify-content: center;
     align-items: center;
     background: transparent;
-    height: 100vh;
-    max-height: 850px;
+    height: 100%;
+    max-height: calc(100vh - 32px);
     box-sizing: border-box;
     position: relative;
 }
@@ -387,7 +1047,6 @@ body.ios-mode .device {
     background: none;
     border: none;
     color: var(--header-text);
-    cursor: pointer;
     padding: 6px;
     border-radius: 50%;
     display: flex;
@@ -533,10 +1192,11 @@ body.dark-mode .chat-doodle-bg,
     right: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
     user-select: none;
     -webkit-user-select: none;
     cursor: default;
+    will-change: transform;
 }
 
 .chat-container::-webkit-scrollbar {
@@ -556,22 +1216,9 @@ body.dark-mode .chat-doodle-bg,
     line-height: 1.45;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     word-wrap: break-word;
-    animation: messageFadeIn 0.3s ease-out;
     user-select: none;
     -webkit-user-select: none;
     cursor: default;
-}
-
-@keyframes messageFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .message.received {
@@ -630,12 +1277,165 @@ body.dark-mode .chat-doodle-bg,
 
 .msg-status {
     color: #53bdeb;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+}
+
+.msg-status .tick-ios {
+    display: none;
+}
+
+.msg-status .tick-android {
+    display: inline-block;
 }
 
 .message.received .msg-status {
     display: none;
+}
+
+/* Chat Bubble Tail (Default: hidden on Android) */
+.msg-tail {
+    display: none;
+}
+
+/* Consecutive Message Grouping */
+.message.grouped-message {
+    border-radius: 8px;
+    margin-bottom: var(--msg-grouped-gap, 2.5px);
+}
+
+.message.sent.last-in-group {
+    border-radius: var(--radius-sent);
+    margin-bottom: var(--msg-group-gap, 8px);
+}
+
+.message.received.last-in-group {
+    border-radius: var(--radius-received);
+    margin-bottom: var(--msg-group-gap, 8px);
+}
+
+/* iOS Mode Chat Bubble Enhancements (matching Delete-I reference) */
+body.ios-mode .message {
+    display: flow-root;
+    position: relative;
+    padding: 8px 14px 8px 14px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.35;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+    word-break: break-word;
+    box-sizing: border-box;
+}
+
+/* Consecutive bubbles from same sender are rounded on ALL 4 corners */
+body.ios-mode .message.sent {
+    border-radius: 18px;
+    margin-right: 6px;
+    margin-bottom: var(--msg-grouped-gap, 2.5px);
+}
+
+body.ios-mode .message.received {
+    border-radius: 18px;
+    margin-left: 6px;
+    margin-bottom: var(--msg-grouped-gap, 2.5px);
+}
+
+/* ONLY the last bubble in a group gets the notched bottom corner and standard gap */
+body.ios-mode .message.sent.last-in-group {
+    border-bottom-right-radius: 4px;
+    margin-bottom: var(--msg-group-gap, 8px);
+}
+
+body.ios-mode .message.received.last-in-group {
+    border-bottom-left-radius: 4px;
+    margin-bottom: var(--msg-group-gap, 8px);
+}
+
+/* Tail styling: ONLY displayed on the last bubble in a group */
+body.ios-mode .msg-tail {
+    display: none;
+}
+
+body.ios-mode .message.last-in-group .msg-tail {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    width: 18px;
+    height: 20px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+body.ios-mode .message.sent.last-in-group .msg-tail {
+    right: -8.5px;
+    fill: var(--msg-sent);
+}
+
+body.ios-mode .message.received.last-in-group .msg-tail {
+    left: -8.5px;
+    right: auto;
+    transform: scaleX(-1);
+    fill: var(--msg-received);
+}
+
+/* Time & Status Placement (matching Delete-I design, eliminating text overlap) */
+body.ios-mode .msg-content {
+    display: inline;
+}
+
+body.ios-mode .msg-spacer {
+    display: none !important;
+}
+
+body.ios-mode .msg-meta {
+    position: static;
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    margin-left: 10px;
+    user-select: none;
+    line-height: 1;
+}
+
+body.ios-mode .msg-time {
+    font-size: 11px;
+    color: var(--msg-time, #8e8e93);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+body.ios-mode .msg-edited-flag {
+    font-size: 10.5px;
+    color: var(--msg-time, #8e8e93);
+    font-style: italic;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+body.ios-mode .message.sent .msg-status {
+    color: #1d4588;
+    /* WhatsApp iOS read double tick blue from Delete-I reference */
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+body.ios-mode.dark-mode .message.sent .msg-status {
+    color: #53bdeb;
+    /* Crisp readable cyan-blue for dark mode bubbles */
+}
+
+body.ios-mode .msg-status .tick-android {
+    display: none;
+}
+
+body.ios-mode .msg-status .tick-ios {
+    display: inline-block;
+    width: 16px;
+    height: 11px;
 }
 
 /* Emoji Styling */
@@ -784,314 +1584,27 @@ body.dark-mode .chat-doodle-bg,
     background-color: rgba(0, 0, 0, 0.04);
 }
 
-/* Modern Toggle */
-.toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #333;
-    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 20px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 50%;
-}
-
-input:checked+.slider {
-    background-color: var(--accent-emerald);
-}
-
-input:checked+.slider:before {
-    transform: translateX(20px);
-}
-
 #toast {
     position: fixed;
     bottom: 32px;
     left: 50%;
     transform: translateX(-50%);
-    background: #222;
-    border: 1px solid #333;
+    background: #222222BF;
+    border: 1px solid #33333380;
     color: white;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 30px;
     font-size: 13px;
+    font-weight: 500;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     z-index: 1000;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
 }
 
 #toast.show {
     opacity: 1;
-}
-
-/* Wallpaper Customization UI */
-.wallpaper-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-top: 4px;
-}
-
-.wp-preset {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 10px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    position: relative;
-    padding: 0;
-}
-
-.wp-preset:hover {
-    transform: scale(1.08);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-.wp-preset.active {
-    border-color: var(--accent-emerald);
-    box-shadow: 0 0 0 2px var(--accent-emerald);
-}
-
-.wp-preset.default-wp {
-    background-color: var(--chat-bg);
-    border: 1px dashed var(--sidebar-border);
-    color: var(--sidebar-text-muted);
-}
-
-.wp-custom-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--sidebar-item-bg);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 12px;
-    padding: 8px 12px;
-}
-
-.color-picker-wrapper {
-    position: relative;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-}
-
-.color-picker-wrapper input[type="color"] {
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    opacity: 0;
-}
-
-.color-picker-preview {
-    width: 100%;
-    height: 100%;
-    border-radius: 6px;
-}
-
-.wp-hex-label {
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--sidebar-text);
-    flex: 1;
-}
-
-.wp-btn-action {
-    background: transparent;
-    border: 1px solid var(--sidebar-border);
-    color: var(--sidebar-text);
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-}
-
-.wp-btn-action:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.wp-img-preview-box {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--sidebar-item-bg);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 12px;
-    padding: 8px 12px;
-}
-
-.wp-thumb {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    object-fit: cover;
-}
-
-/* UI Structure & Extracted Inline Styles */
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.card-title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
-    letter-spacing: -0.01em;
-}
-
-.section-header-between {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#btnResetWallpaper svg {
-    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: center;
-}
-
-
-#btnResetWallpaper:active svg,
-#btnResetWallpaper.spin svg {
-    transform: rotate(-360deg);
-}
-
-.toggle-sublabel {
-    font-size: 11px;
-    color: var(--sidebar-text-muted);
-}
-
-.switch-sm {
-    width: 34px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-.switch-sm .slider:before {
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.switch-sm input:checked+.slider:before {
-    transform: translateX(16px);
-}
-
-/* Preset Palette Colors */
-.wp-preset[data-color="default"] {
-    background: var(--chat-bg);
-}
-
-.wp-preset[data-color="#0c332c"] {
-    background: #0c332c;
-}
-
-.wp-preset[data-color="#121b22"] {
-    background: #121b22;
-}
-
-.wp-preset[data-color="#0b141a"] {
-    background: #0b141a;
-}
-
-.wp-preset[data-color="#2a3942"] {
-    background: #2a3942;
-}
-
-.wp-preset[data-color="#d6eed8"] {
-    background: #d6eed8;
-}
-
-.wp-preset[data-color="#d8ebf2"] {
-    background: #d8ebf2;
-}
-
-.wp-preset[data-color="#efeae2"] {
-    background: #efeae2;
-}
-
-.wp-preset[data-color="#f3e5e5"] {
-    background: #f3e5e5;
-}
-
-.wp-preset[data-color="#312239"] {
-    background: #312239;
-}
-
-#colorPickerPreview {
-    background: #efeae2;
-}
-
-.wp-rgb-caption {
-    font-size: 10px;
-    color: var(--sidebar-text-muted);
-    font-weight: 600;
-}
-
-.wp-upload-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.wp-btn-upload {
-    justify-content: center;
-    cursor: pointer;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 #wpImgUpload,

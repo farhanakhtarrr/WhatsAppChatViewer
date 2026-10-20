@@ -127,6 +127,7 @@ document.addEventListener('selectionchange', () => {
 
 // OS Toggle (Android / iOS Mode)
 osToggle.addEventListener('change', (e) => {
+    e.target.closest('.toggle-pill')?.classList.add('user-interacted');
     const isIOS = e.target.checked;
     osLabel.textContent = isIOS ? "iOS Mode" : "Android Mode";
 
@@ -141,6 +142,9 @@ osToggle.addEventListener('change', (e) => {
 
             // Switch emojis to match current OS
             updateAllEmojisInChat(isIOS);
+            if (virtualScroller.initialized) {
+                renderVirtualChunk(true);
+            }
         }, 100);
 
         setTimeout(() => overlay.remove(), 700);
@@ -149,6 +153,7 @@ osToggle.addEventListener('change', (e) => {
 
 // Theme Toggle (Light / Dark Mode)
 themeToggle.addEventListener('change', (e) => {
+    e.target.closest('.toggle-pill')?.classList.add('user-interacted');
     const isDark = e.target.checked;
     themeLabel.textContent = isDark ? "Dark Theme" : "Light Theme";
     if (isDark) {
@@ -210,6 +215,7 @@ updateWallpaper();
 presetButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         presetButtons.forEach(b => b.classList.remove('active'));
+        if (customColorSwatch) customColorSwatch.classList.remove('active');
         btn.classList.add('active');
         const color = btn.getAttribute('data-color');
         if (color === 'default') {
@@ -218,8 +224,8 @@ presetButtons.forEach(btn => {
             currentWallpaperMode = 'color';
             currentCustomColor = color;
             wpColorPicker.value = color;
-            wpColorHex.textContent = color;
-            colorPickerPreview.style.backgroundColor = color;
+            if (wpColorHex) wpColorHex.textContent = color;
+            if (colorPickerPreview) colorPickerPreview.style.backgroundColor = color;
         }
         updateWallpaper();
     });
@@ -231,27 +237,50 @@ btnResetWallpaper.addEventListener('click', () => {
     setTimeout(() => btnResetWallpaper.classList.remove('spin'), 450);
     currentWallpaperMode = 'default';
     presetButtons.forEach(b => b.classList.remove('active'));
-    document.querySelector('.wp-preset[data-color="default"]')?.classList.add('active');
+    if (customColorSwatch) {
+        customColorSwatch.classList.remove('active');
+        customColorSwatch.style.background = '';
+    }
     isDoodleEnabled = true;
     doodleToggle.checked = true;
     document.documentElement.style.setProperty('--doodle-opacity', '0.65');
     document.documentElement.style.setProperty('--doodle-contrast', '1');
     currentCustomImgData = null;
-    wpImgPreviewBox.style.display = 'none';
+    if (wpImgPreviewBox) wpImgPreviewBox.style.display = 'none';
     wpImgUpload.value = '';
     updateWallpaper();
+    showToast('Wallpaper reset to default');
 });
+
+// Custom color swatch click triggers hidden color input
+const customColorSwatch = document.getElementById('customColorSwatch');
+if (customColorSwatch) {
+    customColorSwatch.addEventListener('click', () => {
+        wpColorPicker.click();
+    });
+}
 
 // Manual RGB Color Picker
 wpColorPicker.addEventListener('input', (e) => {
     const color = e.target.value;
     currentCustomColor = color;
     currentWallpaperMode = 'color';
-    wpColorHex.textContent = color;
-    colorPickerPreview.style.backgroundColor = color;
+    if (wpColorHex) wpColorHex.textContent = color;
+    if (colorPickerPreview) colorPickerPreview.style.backgroundColor = color;
     presetButtons.forEach(b => b.classList.remove('active'));
+    if (customColorSwatch) {
+        customColorSwatch.classList.add('active');
+    }
     updateWallpaper();
 });
+
+// Custom Wallpaper Button triggers image upload
+const btnCustomWallpaper = document.getElementById('btnCustomWallpaper');
+if (btnCustomWallpaper) {
+    btnCustomWallpaper.addEventListener('click', () => {
+        wpImgUpload.click();
+    });
+}
 
 // Custom Image Wallpaper Upload
 wpImgUpload.addEventListener('change', (e) => {
@@ -261,31 +290,58 @@ wpImgUpload.addEventListener('change', (e) => {
     reader.onload = (ev) => {
         currentCustomImgData = ev.target.result;
         currentWallpaperMode = 'image';
-        wpThumbImg.src = currentCustomImgData;
-        wpImgName.textContent = file.name;
-        wpImgPreviewBox.style.display = 'flex';
+        if (wpThumbImg) wpThumbImg.src = currentCustomImgData;
+        if (wpImgName) wpImgName.textContent = file.name;
+        if (wpImgPreviewBox) wpImgPreviewBox.style.display = 'flex';
         presetButtons.forEach(b => b.classList.remove('active'));
+        if (customColorSwatch) customColorSwatch.classList.remove('active');
         updateWallpaper();
+        showToast('Custom wallpaper applied');
     };
     reader.readAsDataURL(file);
 });
 
 // Remove Custom Image Wallpaper
-btnRemoveWpImg.addEventListener('click', () => {
-    currentCustomImgData = null;
-    wpImgPreviewBox.style.display = 'none';
-    wpImgUpload.value = '';
-    currentWallpaperMode = 'default';
-    presetButtons.forEach(b => b.classList.remove('active'));
-    document.querySelector('.wp-preset[data-color="default"]')?.classList.add('active');
-    updateWallpaper();
-});
+if (btnRemoveWpImg) {
+    btnRemoveWpImg.addEventListener('click', () => {
+        currentCustomImgData = null;
+        if (wpImgPreviewBox) wpImgPreviewBox.style.display = 'none';
+        wpImgUpload.value = '';
+        currentWallpaperMode = 'default';
+        presetButtons.forEach(b => b.classList.remove('active'));
+        updateWallpaper();
+        showToast('Image wallpaper removed');
+    });
+}
 
 // Doodle Pattern Overlay Toggle
 doodleToggle.addEventListener('change', (e) => {
+    e.target.closest('.toggle-pill')?.classList.add('user-interacted');
     isDoodleEnabled = e.target.checked;
     updateWallpaper();
 });
+
+// Load File Button Hook
+const btnLoadFile = document.getElementById('btnLoadFile');
+if (btnLoadFile) {
+    btnLoadFile.addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+}
+
+// Low Res Toggle State & Button
+let isLowRes = false;
+const toggleLowRes = document.getElementById('toggleLowRes');
+if (toggleLowRes) {
+    toggleLowRes.addEventListener('click', () => {
+        isLowRes = !isLowRes;
+        toggleLowRes.classList.toggle('active', isLowRes);
+        toggleLowRes.setAttribute('aria-pressed', isLowRes ? 'true' : 'false');
+        if (isLowRes) {
+            showToast('Low Resolution Screenshot - Activated');
+        }
+    });
+}
 
 // --- Screenshot Export ---
 document.getElementById('btnScreenshot').addEventListener('click', async () => {
@@ -308,12 +364,13 @@ document.getElementById('btnScreenshot').addEventListener('click', async () => {
 
     const btn = document.getElementById('btnScreenshot');
     const origBtnText = btn.innerHTML;
-    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Exporting...`;
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Exporting...`;
     btn.style.pointerEvents = 'none';
 
     try {
+        const screenshotScale = isLowRes ? 2 : 3; // 2x for Android density, 3x for iPhone X Super Retina
         const canvas = await html2canvas(deviceEl, {
-            scale: 3, // iPhone X 3x Super Retina native resolution (1125 x 2436 px)
+            scale: screenshotScale,
             useCORS: true,
             allowTaint: true,
             backgroundColor: screenshotBg,
@@ -404,10 +461,14 @@ document.getElementById('btnScreenshot').addEventListener('click', async () => {
                 clonedDoc.querySelectorAll('.message.sent').forEach(el => {
                     el.style.backgroundColor = msgSentBg;
                     el.style.color = msgTextColor;
+                    const tail = el.querySelector('.msg-tail');
+                    if (tail) tail.style.fill = msgSentBg;
                 });
                 clonedDoc.querySelectorAll('.message.received').forEach(el => {
                     el.style.backgroundColor = msgReceivedBg;
                     el.style.color = msgTextColor;
+                    const tail = el.querySelector('.msg-tail');
+                    if (tail) tail.style.fill = msgReceivedBg;
                 });
 
                 // Message text
@@ -421,10 +482,12 @@ document.getElementById('btnScreenshot').addEventListener('click', async () => {
                 });
 
                 // Double check marks (status ticks)
+                const effectiveTickColor = isIOS && !isDark ? '#1d4588' : tickColor;
                 clonedDoc.querySelectorAll('.msg-status').forEach(el => {
-                    el.style.color = tickColor;
-                    const svg = el.querySelector('svg');
-                    if (svg) svg.style.fill = tickColor;
+                    el.style.color = effectiveTickColor;
+                    el.querySelectorAll('svg path').forEach(path => {
+                        path.style.fill = effectiveTickColor;
+                    });
                 });
 
                 // System notifications
@@ -465,7 +528,12 @@ pfpUpload.addEventListener('change', (e) => {
 document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
-    fileNameDisplay.textContent = file.name;
+    if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+    if (btnLoadFile) {
+        btnLoadFile.textContent = file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name;
+        btnLoadFile.title = file.name;
+    }
+    showToast(`Loaded ${file.name}`);
     const reader = new FileReader();
     reader.onload = (e) => parseChat(e.target.result);
     reader.readAsText(file);
@@ -536,7 +604,7 @@ let virtualScroller = {
     content: null,
     startIndex: -1,
     endIndex: -1,
-    buffer: 20,
+    buffer: 35,
     totalHeight: 0,
     initialized: false,
     renderFrame: null,
@@ -611,12 +679,18 @@ function renderVirtualChunk(force = false) {
         if (visibleHeight > clientHeight) break;
     }
 
-    const renderStart = Math.max(0, visibleStart - virtualScroller.buffer);
-    const renderEnd = Math.min(virtualScroller.items.length - 1, visibleEnd + virtualScroller.buffer);
+    const buffer = virtualScroller.buffer || 35;
+    const threshold = 12;
 
-    if (!force && renderStart >= virtualScroller.startIndex && renderEnd <= virtualScroller.endIndex && virtualScroller.content.innerHTML !== '') {
+    const hasTopMargin = virtualScroller.startIndex === 0 || visibleStart >= virtualScroller.startIndex + threshold;
+    const hasBottomMargin = virtualScroller.endIndex >= virtualScroller.items.length - 1 || visibleEnd <= virtualScroller.endIndex - threshold;
+
+    if (!force && hasTopMargin && hasBottomMargin && virtualScroller.content.innerHTML !== '') {
         return;
     }
+
+    const renderStart = Math.max(0, visibleStart - buffer);
+    const renderEnd = Math.min(virtualScroller.items.length - 1, visibleEnd + buffer);
 
     virtualScroller.startIndex = renderStart;
     virtualScroller.endIndex = renderEnd;
@@ -654,16 +728,26 @@ function renderVirtualChunk(force = false) {
             const spacerClass = msg.isEdited ? 'msg-spacer edited' : 'msg-spacer';
             const editedTag = msg.isEdited ? `<span class="msg-edited-flag">Edited</span>` : '';
 
+            // Detect if this message is the last in a consecutive group from the same sender
+            const nextMsg = (i < virtualScroller.items.length - 1) ? virtualScroller.items[i + 1] : null;
+            const isLastInGroup = !nextMsg || nextMsg.type === 'system' || nextMsg.sender !== msg.sender;
+            const groupClass = isLastInGroup ? 'last-in-group' : 'grouped-message';
+
             htmlStr += `
-                <div id="${msg.id}" data-index="${i}" class="message ${isSent ? 'sent' : 'received'} virtual-item">
+                <div id="${msg.id}" data-index="${i}" class="message ${isSent ? 'sent' : 'received'} ${groupClass} virtual-item">
                     <div class="msg-content" data-raw="${msg.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}">${displayHtml}<span class="${spacerClass}"></span></div>
                     <div class="msg-meta">
                         ${editedTag}
                         <span class="msg-time">${msg.timeStr}</span>
                         <div class="msg-status">
-                            <svg viewBox="0 0 16 15" width="16" height="15"><path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.346.125.467-.025l6.253-8.113a.366.366 0 0 0-.03-.514zm-4.322-.442l-.477-.373a.365.365 0 0 0-.51.063L4.346 9.426l-2.22-2.072a.32.32 0 0 0-.47-.019l-.42.42c-.13.13-.13.342-.001.472l2.903 2.912c.144.144.37.135.503-.018l6.02-7.666a.366.366 0 0 0-.041-.51z"></path></svg>
+                            <svg class="tick-android" viewBox="0 0 16 15" width="16" height="15"><path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.346.125.467-.025l6.253-8.113a.366.366 0 0 0-.03-.514zm-4.322-.442l-.477-.373a.365.365 0 0 0-.51.063L4.346 9.426l-2.22-2.072a.32.32 0 0 0-.47-.019l-.42.42c-.13.13-.13.342-.001.472l2.903 2.912c.144.144.37.135.503-.018l6.02-7.666a.366.366 0 0 0-.041-.51z"></path></svg>
+                            <svg class="tick-ios" viewBox="0 0 16 11" width="16" height="11" aria-hidden="true"><path fill="currentColor" d="M11.15.71a.7.7 0 0 0-.99 0L5.35 5.52l-1.5-1.5a.7.7 0 1 0-.99.99l2 2a.7.7 0 0 0 .99 0l5.3-5.31a.7.7 0 0 0 0-.99zm3.84 0a.7.7 0 0 0-.99 0l-5.3 5.31.5.5a.7.7 0 0 0 .99 0l4.8-4.82a.7.7 0 0 0 0-.99zM1.86 4.01a.7.7 0 0 0-.99.99l2 2a.7.7 0 0 0 .99 0l.5-.5-1.5-1.5-.99-.99z"/></svg>
                         </div>
                     </div>
+                    ${isLastInGroup ? `
+                    <svg class="msg-tail" viewBox="0 0 18 20" aria-hidden="true">
+                        <path d="M9.75,1.5 C9.75,8.5 14.75,13.5 18,19.75 C13.0,20.0 7.5,17.5 0,14.0 L0,1.5 Z" />
+                    </svg>` : ''}
                 </div>`;
         }
     }
@@ -679,7 +763,10 @@ function renderVirtualChunk(force = false) {
         const nodes = virtualScroller.content.querySelectorAll('.virtual-item');
         nodes.forEach(node => {
             const idx = parseInt(node.getAttribute('data-index'));
-            const trueHeight = node.offsetHeight + (idx === virtualScroller.items.length - 1 ? 0 : 8);
+            if (isNaN(idx)) return;
+            const isLastItem = idx === virtualScroller.items.length - 1;
+            const mb = isLastItem ? 0 : (parseFloat(window.getComputedStyle(node).marginBottom) || 0);
+            const trueHeight = node.offsetHeight + mb;
             const oldHeight = virtualScroller.rowHeights[idx];
 
             if (Math.abs(trueHeight - oldHeight) > 1) {
@@ -695,7 +782,7 @@ function renderVirtualChunk(force = false) {
 
         if (heightChanged) {
             virtualScroller.spacer.style.height = `${virtualScroller.totalHeight}px`;
-            if (diffBeforeScroll !== 0) {
+            if (force && diffBeforeScroll !== 0) {
                 chatContainer.scrollTop += diffBeforeScroll;
             }
         }
@@ -750,19 +837,56 @@ searchInput.addEventListener('input', (e) => {
     }
 });
 
-document.getElementById('searchUp').addEventListener('click', () => {
-    if (searchResults.length === 0) return;
-    currentMatchIndex = (currentMatchIndex - 1 + searchResults.length) % searchResults.length;
-    updateSearchUI();
-    jumpToMatch();
-});
+const searchUpBtn = document.getElementById('searchUp');
+const searchDownBtn = document.getElementById('searchDown');
 
-document.getElementById('searchDown').addEventListener('click', () => {
-    if (searchResults.length === 0) return;
-    currentMatchIndex = (currentMatchIndex + 1) % searchResults.length;
-    updateSearchUI();
-    jumpToMatch();
-});
+function triggerSearchScalePop(btn) {
+    if (!btn) return;
+    btn.classList.remove('scale-pop');
+    void btn.offsetWidth; // Force CSS reflow to re-trigger scale pop animation on every click
+    btn.classList.add('scale-pop');
+}
+
+if (searchUpBtn) {
+    searchUpBtn.addEventListener('animationend', () => {
+        searchUpBtn.classList.remove('scale-pop');
+    });
+
+    searchUpBtn.addEventListener('click', () => {
+        if (searchResults.length === 0) return;
+        triggerSearchScalePop(searchUpBtn);
+        currentMatchIndex = (currentMatchIndex - 1 + searchResults.length) % searchResults.length;
+        updateSearchUI();
+        jumpToMatch();
+    });
+}
+
+if (searchDownBtn) {
+    searchDownBtn.addEventListener('animationend', () => {
+        searchDownBtn.classList.remove('scale-pop');
+    });
+
+    searchDownBtn.addEventListener('click', () => {
+        if (searchResults.length === 0) return;
+        triggerSearchScalePop(searchDownBtn);
+        currentMatchIndex = (currentMatchIndex + 1) % searchResults.length;
+        updateSearchUI();
+        jumpToMatch();
+    });
+}
+
+if (searchInput) {
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                if (searchUpBtn) searchUpBtn.click();
+            } else {
+                if (searchDownBtn) searchDownBtn.click();
+            }
+        }
+    });
+}
 
 function updateSearchUI() {
     if (searchStats) searchStats.innerText = `${currentMatchIndex + 1} / ${searchResults.length}`;
@@ -845,9 +969,16 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideContextMenu();
 });
 
-function showToast() {
+function showToast(message) {
+    if (!toast) return;
+    if (message) {
+        toast.textContent = message;
+    } else {
+        toast.textContent = "Message text copied to clipboard";
+    }
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+    if (toast._timer) clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
 function fallbackCopy(text) {

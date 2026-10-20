@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Chat Viewer</title>
-    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -14,176 +16,207 @@
 
     <div id="app-wrapper">
         <div id="controls">
-            <!-- Main Configuration Window -->
+            <!-- Preference Window -->
             <div class="control-card">
                 <div class="card-header">
                     <h2 class="card-title">Preference</h2>
                 </div>
 
-                <div class="control-section">
-                    <div class="toggle-row">
-                        <span class="label-caps" id="osLabel">Android Mode</span>
-                        <label class="switch">
-                            <input type="checkbox" id="osToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="toggle-row">
-                        <span class="label-caps" id="themeLabel">Light Theme</span>
-                        <label class="switch">
-                            <input type="checkbox" id="themeToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+                <div class="card-row preference-row">
+                    <!-- Device Mode Toggle (Android / iOS) -->
+                    <label class="toggle-pill" title="Toggle Android / iOS Mode">
+                        <input type="checkbox" id="osToggle">
+                        <span class="toggle-track">
+                            <span class="toggle-knob">
+                                <span class="knob-icon icon-android" title="Android Mode">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9992.4482.9992.9993s-.4482.9997-.9992.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993s-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5832 8.4116 13.8475 8.125 12 8.125c-1.8475 0-3.5832.2866-5.1368.8247L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.7845h24c-.3432-4.1256-2.6889-7.5978-6.1185-9.4631" />
+                                    </svg>
+                                </span>
+                                <span class="knob-icon icon-apple" title="iOS Mode">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.72-.94 2.74 1 .08 2.03-.49 2.65-1.24z" />
+                                    </svg>
+                                </span>
+                            </span>
+                        </span>
+                    </label>
+
+                    <!-- Theme Mode Toggle (Light / Dark) -->
+                    <label class="toggle-pill" title="Toggle Light / Dark Theme">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="toggle-track">
+                            <span class="toggle-knob">
+                                <span class="knob-icon icon-sun" title="Light Theme">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="5"></circle>
+                                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                    </svg>
+                                </span>
+                                <span class="knob-icon icon-moon" title="Dark Theme">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
+                                </span>
+                            </span>
+                        </span>
+                    </label>
+
+                    <!-- Load Your File Pill Button -->
+                    <button type="button" id="btnLoadFile" class="pill-btn primary-pill load-file-btn">
+                        Load Your File
+                    </button>
+                    <input type="file" id="fileInput" accept=".txt" style="display: none;">
                 </div>
 
-                <div class="control-section">
-                    <label class="file-upload-wrapper">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--sidebar-text-muted)"
-                            stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        <span class="file-name-display" id="fileNameDisplay">Choose .txt file</span>
-                        <input type="file" id="fileInput" accept=".txt">
-                    </label>
-                </div>
+                <!-- Hidden compatibility elements to support app.js references -->
+                <span id="osLabel" class="visually-hidden">Android Mode</span>
+                <span id="themeLabel" class="visually-hidden">Light Theme</span>
+                <span id="fileNameDisplay" class="visually-hidden">Choose .txt file</span>
             </div>
 
             <!-- Wallpaper Customizer Window -->
             <div class="control-card">
-                <div class="control-section">
-                    <div class="section-header-between">
-                        <label class="label-caps">Chat Wallpaper</label>
-                        <button id="btnResetWallpaper" class="search-btn btn-icon-pad" title="Reset Default Wallpaper">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <div class="card-header">
+                    <h2 class="card-title">Chat Wallpaper</h2>
+                </div>
+
+                <!-- 5 Static Colors + 1 Custom Color Box -->
+                <div class="wallpaper-swatches-row" id="wallpaperPresets">
+                    <button class="wp-swatch wp-preset" data-color="#1e7ec8" style="background-color: #1e7ec8;"
+                        title="Royal Blue"></button>
+                    <button class="wp-swatch wp-preset" data-color="#b07d4b" style="background-color: #b07d4b;"
+                        title="Tan Brown"></button>
+                    <button class="wp-swatch wp-preset" data-color="#38b449" style="background-color: #38b449;"
+                        title="Emerald Green"></button>
+                    <button class="wp-swatch wp-preset" data-color="#c62828" style="background-color: #c62828;"
+                        title="Crimson Red"></button>
+                    <button class="wp-swatch wp-preset" data-color="#686d74" style="background-color: #686d74;"
+                        title="Slate Grey"></button>
+                    <button class="wp-swatch wp-swatch-custom" id="customColorSwatch" title="Pick Custom Color">
+                        <span class="figma-color-dots" aria-hidden="true">
+                            <span class="cdot" style="background:#ff3b30;"></span>
+                            <span class="cdot" style="background:#ff9500;"></span>
+                            <span class="cdot" style="background:#ffcc00;"></span>
+                            <span class="cdot" style="background:#34c759;"></span>
+                            <span class="cdot" style="background:#00c7be;"></span>
+                            <span class="cdot" style="background:#007aff;"></span>
+                            <span class="cdot" style="background:#5856d6;"></span>
+                            <span class="cdot" style="background:#af52de;"></span>
+                            <span class="cdot" style="background:#ff2d55;"></span>
+                        </span>
+                        <input type="color" id="wpColorPicker" value="#efeae2"
+                            style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;">
+                    </button>
+                </div>
+
+                <!-- Hidden compatibility elements for color picker text & preview -->
+                <span id="wpColorHex" class="visually-hidden">#efeae2</span>
+                <div id="colorPickerPreview" class="visually-hidden"></div>
+
+                <!-- Action Row: Custom Wallpaper Button, Doodle Toggle, Reset Button -->
+                <div class="wallpaper-action-row">
+                    <div class="wallpaper-left-group">
+                        <button type="button" id="btnCustomWallpaper" class="pill-btn primary-pill custom-wp-btn">
+                            Custom Wallpaper
+                        </button>
+                        <input type="file" id="wpImgUpload" accept="image/*" style="display: none;">
+
+                        <!-- Doodle Pattern Toggle -->
+                        <label class="toggle-pill toggle-pill-sm doodle-toggle-pill" title="Toggle Doodle Pattern">
+                            <input type="checkbox" id="doodleToggle" checked>
+                            <span class="toggle-track">
+                                <span class="toggle-knob"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Reset Button centered directly under the 6th color box -->
+                    <div class="wallpaper-reset-wrapper">
+                        <button type="button" id="btnResetWallpaper" class="circle-btn" title="Reset Default Wallpaper">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                                 <polyline points="3 3 3 8 8 8"></polyline>
                             </svg>
                         </button>
                     </div>
+                </div>
 
-                    <div class="toggle-row">
-                        <span class="toggle-sublabel">Doodle Pattern</span>
-                        <label class="switch switch-sm">
-                            <input type="checkbox" id="doodleToggle" checked>
-                            <span class="slider"></span>
-                        </label>
+                <!-- Image preview box (hidden by default, shown if custom image uploaded) -->
+                <div class="wp-img-preview-box" id="wpImgPreviewBox" style="display: none;">
+                    <div class="wp-preview-inner">
+                        <img class="wp-thumb" id="wpThumbImg" alt="Wallpaper Preview">
+                        <span id="wpImgName">wallpaper.jpg</span>
                     </div>
-
-                    <!-- Presets Grid -->
-                    <div class="wallpaper-grid" id="wallpaperPresets">
-                        <button class="wp-preset active" data-color="default" title="Default Theme Wallpaper">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </button>
-                        <button class="wp-preset" data-color="#0c332c" title="Deep Forest Green"></button>
-                        <button class="wp-preset" data-color="#121b22" title="Dark Slate"></button>
-                        <button class="wp-preset" data-color="#0b141a" title="Midnight Black"></button>
-                        <button class="wp-preset" data-color="#2a3942" title="Steel Blue"></button>
-                        <button class="wp-preset" data-color="#d6eed8" title="Sage Mint"></button>
-                        <button class="wp-preset" data-color="#d8ebf2" title="Powder Blue"></button>
-                        <button class="wp-preset" data-color="#efeae2" title="Classic Beige"></button>
-                        <button class="wp-preset" data-color="#f3e5e5" title="Blush Rose"></button>
-                        <button class="wp-preset" data-color="#312239" title="Plum Purple"></button>
-                    </div>
-
-                    <!-- Custom Color Picker -->
-                    <div class="wp-custom-row">
-                        <div class="color-picker-wrapper">
-                            <div class="color-picker-preview" id="colorPickerPreview"></div>
-                            <input type="color" id="wpColorPicker" value="#efeae2">
-                        </div>
-                        <span class="wp-hex-label" id="wpColorHex">#efeae2</span>
-                        <span class="wp-rgb-caption">Custom RGB</span>
-                    </div>
-
-                    <!-- Custom Image Upload -->
-                    <div class="wp-upload-group">
-                        <label class="wp-btn-action wp-btn-upload">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                            </svg>
-                            Custom Image Wallpaper
-                            <input type="file" id="wpImgUpload" accept="image/*">
-                        </label>
-
-                        <div class="wp-img-preview-box" id="wpImgPreviewBox">
-                            <div class="wp-preview-inner">
-                                <img class="wp-thumb" id="wpThumbImg" alt="Wallpaper Preview">
-                                <span id="wpImgName">wallpaper.jpg</span>
-                            </div>
-                            <button id="btnRemoveWpImg" class="search-btn btn-icon-pad"
-                                title="Remove image wallpaper">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                    <button id="btnRemoveWpImg" class="search-btn btn-icon-pad" title="Remove image wallpaper">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
             <!-- Search Window -->
             <div class="control-card">
-                <div class="control-section">
-                    <label class="label-caps">Search Console</label>
-                    <div class="search-container">
-                        <div class="search-main">
-                            <input type="text" id="searchInput" placeholder='Use "quotes" for exact'>
-                            <button id="searchClear" class="search-btn btn-icon-pad">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="search-actions">
-                            <span id="searchStats">0 / 0</span>
-                            <div class="search-nav-btns">
-                                <button id="searchUp" class="search-btn">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <polyline points="18 15 12 9 6 15"></polyline>
-                                    </svg>
-                                </button>
-                                <button id="searchDown" class="search-btn">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                <div class="card-header">
+                    <h2 class="card-title">Search</h2>
+                </div>
+                <div class="search-row">
+                    <div class="search-pill-input">
+                        <input type="text" id="searchInput" placeholder='Use "quotes" for exact' autocomplete="off"
+                            spellcheck="false">
+                        <button id="searchClear" class="search-clear-btn" title="Clear Search">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <span id="searchStats" class="search-stats-display">0/0</span>
+                    <div class="search-arrows-group">
+                        <button id="searchUp" class="search-arrow-btn" title="Previous Result">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                        </button>
+                        <button id="searchDown" class="search-arrow-btn" title="Next Result">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Export Window -->
-            <div class="control-card">
-                <div class="control-section">
-                    <label class="label-caps">Output Actions</label>
-                    <button id="btnScreenshot">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
-                            </path>
-                            <circle cx="12" cy="13" r="4"></circle>
-                        </svg>
-                        Export Screenshot
+            <!-- Screenshot Window -->
+            <div class="control-card screenshot-card">
+                <div class="screenshot-row">
+                    <button id="btnScreenshot" class="pill-btn primary-pill screenshot-action-btn">
+                        Screenshot
                     </button>
-                    <p class="action-hint">
-                        Right-click bubbles to copy
-                    </p>
+                    <button id="toggleLowRes" class="low-res-toggle-btn" type="button" aria-pressed="false"
+                        title="Low Resolution Screenshot">
+                        <span class="low-res-knob"></span>
+                        <span class="low-res-label">
+                            <span class="low-res-text">Low Res</span>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -209,7 +242,7 @@
                             <div class="profile-pic" id="profilePic">?</div>
                         </div>
                         <div class="header-info">
-                            <span class="header-name" id="uiRecipientName">Chat Preview</span>
+                            <span class="header-name" id="uiRecipientName">Name</span>
                             <span class="header-status">tap here for contact info</span>
                         </div>
                     </div>
@@ -232,7 +265,8 @@
                     <div class="chat-doodle-bg" id="chatDoodleBg"></div>
                     <div class="chat-container" id="chatContainer">
                         <div class="system-msg">Messages are end-to-end encrypted.</div>
-                        <div class="system-msg upload-prompt">Please upload a WhatsApp exported .txt file to begin viewing.</div>
+                        <div class="system-msg upload-prompt">Please upload a WhatsApp exported .txt file to begin
+                            viewing.</div>
                     </div>
                 </div>
             </div>
